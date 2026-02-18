@@ -1,6 +1,5 @@
 window.BytellsData = (() => {
 
-  // ── Seed helpers ────────────────────────────────────────────
   const rand = (min, max, dp = 0) => {
     const v = Math.random() * (max - min) + min;
     return dp > 0 ? parseFloat(v.toFixed(dp)) : Math.round(v);
@@ -10,14 +9,12 @@ window.BytellsData = (() => {
 
   const pad = (n, l = 3) => String(n).padStart(l, '0');
 
-  // ── Enum pools ───────────────────────────────────────────────
   const ORDER_STATUS   = ['Delivered', 'In Transit', 'Delayed', 'Loading', 'Cancelled'];
   const CARGO_COND     = ['Excellent', 'Good', 'Fair', 'Damaged'];
   const RISK_CLASSES   = ['Low', 'Medium', 'High', 'Critical'];
   const TRAFFIC_LEVELS = ['Light', 'Moderate', 'Heavy', 'Severe'];
   const WEATHER_SEV    = ['Clear', 'Light Rain', 'Heavy Rain', 'Storm', 'Fog'];
 
-  // Botswana-area coords (matching KDL/Gaborone region)
   const WAREHOUSES = [
     { id: 'WH-001', name: 'Gaborone Central', lat: -24.653, lon: 25.908 },
     { id: 'WH-002', name: 'Francistown Depot', lat: -21.170, lon: 27.500 },
@@ -28,7 +25,6 @@ window.BytellsData = (() => {
 
   const ROUTES = Array.from({ length: 12 }, (_, i) => `RT-${pad(i + 1)}`);
 
-  // ── Generate master dataset ──────────────────────────────────
   function generateRows(n = 200) {
     const rows = [];
     const now = Date.now();
@@ -74,7 +70,6 @@ window.BytellsData = (() => {
 
   const MASTER = generateRows(200);
 
-  // ── Aggregation helpers ──────────────────────────────────────
   function groupBy(rows, key) {
     return rows.reduce((acc, row) => {
       const k = row[key];
@@ -93,7 +88,6 @@ window.BytellsData = (() => {
     return arr.filter(r => r[key] === val).length;
   }
 
-  // ── KPI summaries ────────────────────────────────────────────
   function getKPIs() {
     const total  = MASTER.length;
     const delivered = count(MASTER, 'Order_Status', 'Delivered');
@@ -112,7 +106,6 @@ window.BytellsData = (() => {
     };
   }
 
-  // ── Chart data helpers ───────────────────────────────────────
   function getRiskDistribution() {
     const byRisk = groupBy(MASTER, 'Risk_Class');
     return RISK_CLASSES.map(rc => ({
@@ -151,7 +144,6 @@ window.BytellsData = (() => {
   }
 
   function getDisruptionTimeSeries() {
-    // Group by day (last 14 days)
     const days = [];
     const now = Date.now();
     for (let d = 13; d >= 0; d--) {
@@ -197,16 +189,12 @@ window.BytellsData = (() => {
     }));
   }
 
-  // Driver-specific data
   function getDriverRoutes(vehicleId) {
     const vehRows = MASTER.filter(r => r.Vehicle_ID === vehicleId);
     return vehRows.slice(0, 10);
   }
 
-  // ── SQL-like query executor (for dashboard NL2SQL results) ───
   function executeQuery(sql) {
-    // Very lightweight "SQL" interpreter for mock data
-    // Supports basic SELECT patterns matched from NL2SQL output
     sql = sql.toLowerCase().trim();
 
     if (sql.includes('fuel_rate') && sql.includes('vehicle_capacity')) {
@@ -228,7 +216,6 @@ window.BytellsData = (() => {
       const data = getRiskDistribution();
       return { columns: ['Risk_Class', 'Count', 'Avg_Disruption_Score'], rows: data.map(r => [r.label, r.count, r.avg_disruption]) };
     }
-    // Default fallback: recent operations
     const recent = getRecentOperations(8);
     return {
       columns: ['Vehicle_ID', 'Route_ID', 'Order_Status', 'Risk_Class', 'Disruption_Score'],
@@ -236,7 +223,6 @@ window.BytellsData = (() => {
     };
   }
 
-  // ── Public API ───────────────────────────────────────────────
   return {
     raw: MASTER,
     getKPIs,

@@ -83,7 +83,6 @@
   gap: var(--space-3);
 }
 
-/* ── HERO ─────────────────────────────────────────────────── */
 .hero {
   min-height: 100vh;
   padding-top: 64px;
@@ -95,7 +94,6 @@
   overflow: hidden;
 }
 
-/* Radial ambient light */
 .hero::after {
   content: '';
   position: absolute;
@@ -183,7 +181,6 @@
   margin-top: 2px;
 }
 
-/* ── HERO RIGHT — TEASER WIDGET ───────────────────────────── */
 .hero-right {
   height: 100vh;
   display: flex;
@@ -248,7 +245,6 @@
   padding: var(--space-5);
 }
 
-/* NL2SQL Input area */
 .nl-input-area {
   display: flex;
   gap: var(--space-2);
@@ -291,7 +287,6 @@
 .nl-send-btn:hover { background: var(--teal-light); transform: scale(1.05); }
 .nl-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-/* Prompt chips */
 .prompt-chips {
   display: flex;
   flex-wrap: wrap;
@@ -318,7 +313,6 @@
   background: var(--teal-glow);
 }
 
-/* SQL output area */
 .sql-output {
   background: rgba(10, 19, 24, 0.9);
   border: 1px solid var(--border-subtle);
@@ -346,7 +340,6 @@
 
 .sql-output.active { border-color: rgba(13,148,136,0.4); }
 
-/* Result chart area */
 .result-area {
   background: rgba(10, 19, 24, 0.6);
   border: 1px solid var(--border-subtle);

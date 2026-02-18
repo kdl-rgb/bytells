@@ -1,13 +1,7 @@
-/* ============================================================
-   BYTELLS DASHBOARD — Controller
-   Manages: Login/RBAC, all 4 views, chart rendering, NL2SQL
-   ============================================================ */
-
 document.addEventListener('DOMContentLoaded', () => {
 
   BytellsCharts.initDefaults();
 
-  // ── Live clock ────────────────────────────────────────────────
   const clockEl = document.getElementById('liveTime');
   const updateClock = () => {
     const now = new Date();
@@ -16,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateClock();
   setInterval(updateClock, 1000);
 
-  // ── Role config ───────────────────────────────────────────────
   const ROLE_CONFIG = {
     fleet: {
       label: 'Fleet Manager',
@@ -57,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
     },
   };
 
-  // ── SVG icons for nav ─────────────────────────────────────────
   const ICONS = {
     truck:      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
     'bar-chart':`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
@@ -68,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentRole = null;
   let currentView = null;
 
-  // ── Login flow ────────────────────────────────────────────────
   document.getElementById('loginBtn').addEventListener('click', () => {
     const role = document.getElementById('loginRole').value;
     doLogin(role);
@@ -78,19 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
     currentRole = role;
     const config = ROLE_CONFIG[role];
 
-    // Update user info
     document.getElementById('userAvatar').textContent = config.avatar;
     document.getElementById('userName').textContent   = 'Demo User';
-    document.getElementById('userRole').textContent   = config.label;
 
-    // Build sidebar nav
     buildSidebar(config);
-
-    // Show dashboard
     document.getElementById('loginModal').classList.remove('open');
     document.getElementById('dashboardRoot').style.display = 'flex';
-
-    // Navigate to default view
     navigateTo(config.defaultView);
   }
 
@@ -124,23 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function navigateTo(viewId) {
     currentView = viewId;
 
-    // Update sidebar active state
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.view === viewId);
     });
 
-    // Show/hide content areas
     document.querySelectorAll('.content-area').forEach(area => {
       area.classList.toggle('active', area.id === `view-${viewId}`);
     });
 
-    // Update topbar
     const titles = { fleet: 'Fleet Overview', analyst: 'Analytics', driver: 'Driver HUD', admin: 'User Management' };
     const crumbs = { fleet: 'Bytells / Dashboard', analyst: 'Bytells / Analytics', driver: 'Bytells / Driver HUD', admin: 'Bytells / Admin' };
     document.getElementById('pageTitle').textContent    = titles[viewId] || viewId;
     document.getElementById('pageBreadcrumb').textContent = crumbs[viewId] || 'Bytells';
 
-    // Render view
     switch (viewId) {
       case 'fleet':   renderFleetView();   break;
       case 'analyst': renderAnalystView(); break;
@@ -149,14 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ── Refresh button ────────────────────────────────────────────
   document.getElementById('refreshBtn').addEventListener('click', () => {
     if (currentView) navigateTo(currentView);
   });
 
-  // ════════════════════════════════════════════════════════════
-  // FLEET MANAGER VIEW
-  // ════════════════════════════════════════════════════════════
   function renderFleetView() {
     const kpis = BytellsData.getKPIs();
 
@@ -165,16 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('kpiFuel').textContent     = kpis.avg_fuel_rate;
     document.getElementById('kpiHighRisk').textContent = kpis.high_risk_count;
 
-    // Charts
     BytellsCharts.disruptionTimeSeries('chartTimeSeries', BytellsData.getDisruptionTimeSeries());
     BytellsCharts.orderStatus('chartOrderStatus', BytellsData.getOrderStatusBreakdown());
     BytellsCharts.warehouseBar('chartWarehouse', BytellsData.getWarehousePerf());
     BytellsCharts.riskDoughnut('chartRiskDist', BytellsData.getRiskDistribution());
 
-    // Operations table
     renderOpsTable(BytellsData.getRecentOperations(20));
 
-    // Filter
     document.getElementById('opsFilterInput').addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase();
       const filtered = BytellsData.getRecentOperations(50).filter(r =>
@@ -214,15 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // ════════════════════════════════════════════════════════════
-  // ANALYST VIEW
-  // ════════════════════════════════════════════════════════════
   function renderAnalystView() {
     BytellsCharts.fuelByCapacity('chartFuelCap', BytellsData.getFuelByCapacity());
     BytellsCharts.trafficETA('chartTrafficETA', BytellsData.getTrafficVsETA());
     BytellsCharts.riskDoughnut('chartRiskAnalyst', BytellsData.getRiskDistribution());
 
-    // Populate chips
     const chipsEl = document.getElementById('analystChips');
     if (!chipsEl.children.length) {
       BytellsNL2SQL.SAMPLE_PROMPTS.forEach(p => {
@@ -236,8 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chipsEl.appendChild(chip);
       });
     }
-
-    // Send button
     const sendBtn = document.getElementById('analystSendBtn');
     sendBtn.onclick = () => {
       const q = document.getElementById('analystNlInput').value.trim();
@@ -265,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       let sql;
       if (!apiKey.trim()) {
-        // Fallback: show a nicely formatted mock SQL
         sql = BytellsNL2SQL.generateMockSQL(query);
         statusEl.innerHTML = `<span style="color:var(--amber-light)">⚠ No API key — showing mock SQL</span>`;
       } else {
@@ -273,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
           sql = await BytellsNL2SQL.generateSQL(query, apiKey);
           statusEl.innerHTML = `<span style="color:var(--teal-light)">✓ SQL generated via Groq</span>`;
         } catch (apiErr) {
-          // If API fails, fall back to mock
           sql = BytellsNL2SQL.generateMockSQL(query);
           if (apiErr.message === 'CORS_BLOCKED') {
             statusEl.innerHTML = `<span style="color:var(--amber-light)">⚠ CORS blocked — showing mock SQL (route through Flask in production)</span>`;
@@ -285,14 +250,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Typewrite SQL
       sqlEl.textContent = '';
       for (let i = 0; i < sql.length; i++) {
         sqlEl.textContent += sql[i];
         await new Promise(r => setTimeout(r, 8));
       }
 
-      // Execute mock
       const result = BytellsData.executeQuery(sql);
       BytellsCharts.nlResultChart('analystChart', result);
       BytellsNL2SQL.renderResultTable(document.getElementById('analystResultTable'), result);
@@ -305,16 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
     sendBtn.disabled = false;
   }
 
-  // ════════════════════════════════════════════════════════════
-  // DRIVER HUD VIEW
-  // ════════════════════════════════════════════════════════════
   function renderDriverView() {
-    // Pick a random active operation
     const ops = BytellsData.getRecentOperations(10);
     const activeOp = ops[Math.floor(Math.random() * ops.length)];
     const wh = BytellsData.warehouses;
 
-    // Stats
     const etaVal = activeOp.ETA_Variation;
     document.getElementById('driverETA').textContent    = (etaVal >= 0 ? '+' : '') + etaVal + ' min';
     document.getElementById('driverFatigue').textContent = activeOp.Driver_Fatigue + '/10';
@@ -327,14 +285,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('driverFrom').textContent = fromWh.name;
     document.getElementById('driverTo').textContent   = toWh.name;
 
-    // Risk card color
     const rc = document.getElementById('driverRiskCard');
     rc.className = `stat-card ${activeOp.Risk_Class === 'Low' ? 'teal' : activeOp.Risk_Class === 'Medium' ? 'amber' : 'red'}`;
 
-    // Radar
     BytellsCharts.routeRiskRadar('chartDriverRadar', activeOp);
 
-    // Alerts
     const alerts = [];
     if (activeOp.Driver_Fatigue >= 7) alerts.push({ type: 'amber', msg: `High fatigue score (${activeOp.Driver_Fatigue}/10) — consider rest stop` });
     if (['High', 'Critical'].includes(activeOp.Risk_Class)) alerts.push({ type: 'red', msg: `${activeOp.Risk_Class} risk route — enhanced monitoring active` });
@@ -349,7 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
 
-    // History table
     const vehicleOps = BytellsData.getRecentOperations(50)
       .filter(r => r.Vehicle_ID === activeOp.Vehicle_ID)
       .slice(0, 8);
@@ -369,9 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // ════════════════════════════════════════════════════════════
-  // ADMIN VIEW
-  // ════════════════════════════════════════════════════════════
   const MOCK_USERS = [
     { name: 'Kgotla Moagi',    email: 'k.moagi@kdl.co.bw',    role: 'fleet',   status: 'online' },
     { name: 'Tshepiso Dube',   email: 't.dube@kdl.co.bw',     role: 'analyst', status: 'online' },
@@ -394,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   function renderAdminView() {
-    // User list
+    
     const roleLabels = { fleet: 'Fleet Manager', analyst: 'Analyst', driver: 'Driver', admin: 'Admin' };
     const roleColors = { fleet: 'tag-amber', analyst: 'tag-teal', driver: 'tag-grey', admin: 'tag-amber' };
 
@@ -416,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
 
-    // Health indicators
+    
     const health = [
       { label: 'Neon PostgreSQL',     status: 'Connected',  pct: 99, color: 'teal' },
       { label: 'Cloudflare Tunnel',   status: 'Active',     pct: 100, color: 'teal' },
@@ -440,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
 
-    // Audit table
+    
     document.getElementById('auditBody').innerHTML = AUDIT_EVENTS.map(e => `
       <tr>
         <td style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);">Today ${e.ts}</td>
@@ -452,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </tr>
     `).join('');
 
-    // Add user button (demo)
+    
     document.getElementById('addUserBtn').onclick = () => {
       alert('In production: opens user creation form with role assignment and Argon2 credential setup.');
     };

@@ -1,8 +1,3 @@
-/* ============================================================
-   BYTELLS — Chart Engine (Chart.js wrapper)
-   Uses design system tokens for consistent styling
-   ============================================================ */
-
 window.BytellsCharts = (() => {
 
   const COLORS = {
@@ -39,7 +34,6 @@ window.BytellsCharts = (() => {
     'Cancelled':  { bg: 'rgba(239,68,68,0.15)',  border: '#DC2626' },
   };
 
-  // ── Global Chart.js defaults ─────────────────────────────────
   function initDefaults() {
     if (!window.Chart) return;
     Chart.defaults.color = COLORS.textMuted;
@@ -65,7 +59,6 @@ window.BytellsCharts = (() => {
     }
   }
 
-  // ── Risk Distribution Doughnut ────────────────────────────────
   function riskDoughnut(canvasId, data) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -99,7 +92,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Fuel Rate by Capacity Bar ────────────────────────────────
   function fuelByCapacity(canvasId, data) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -149,7 +141,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Disruption Time Series Line ──────────────────────────────
   function disruptionTimeSeries(canvasId, data) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -201,7 +192,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Traffic vs ETA Bar ───────────────────────────────────────
   function trafficETA(canvasId, data) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -235,7 +225,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Order Status Doughnut (small) ────────────────────────────
   function orderStatus(canvasId, data) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -264,7 +253,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Horizontal bar for warehouse performance ─────────────────
   function warehouseBar(canvasId, data) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -305,7 +293,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Generic result chart for NL2SQL output ───────────────────
   function nlResultChart(canvasId, queryResult) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
@@ -344,7 +331,6 @@ window.BytellsCharts = (() => {
     });
   }
 
-  // ── Route risk radar ─────────────────────────────────────────
   function routeRiskRadar(canvasId, row) {
     destroy(canvasId);
     const ctx = document.getElementById(canvasId);
