@@ -266,11 +266,23 @@ document.addEventListener('DOMContentLoaded', () => {
       let sql;
       if (!apiKey.trim()) {
         // Fallback: show a nicely formatted mock SQL
-        sql = getMockSQL(query);
+        sql = BytellsNL2SQL.generateMockSQL(query);
         statusEl.innerHTML = `<span style="color:var(--amber-light)">⚠ No API key — showing mock SQL</span>`;
       } else {
-        sql = await BytellsNL2SQL.generateSQL(query, apiKey);
-        statusEl.innerHTML = `<span style="color:var(--teal-light)">✓ SQL generated via Groq</span>`;
+        try {
+          sql = await BytellsNL2SQL.generateSQL(query, apiKey);
+          statusEl.innerHTML = `<span style="color:var(--teal-light)">✓ SQL generated via Groq</span>`;
+        } catch (apiErr) {
+          // If API fails, fall back to mock
+          sql = BytellsNL2SQL.generateMockSQL(query);
+          if (apiErr.message === 'CORS_BLOCKED') {
+            statusEl.innerHTML = `<span style="color:var(--amber-light)">⚠ CORS blocked — showing mock SQL (route through Flask in production)</span>`;
+          } else if (apiErr.message === 'INVALID_API_KEY') {
+            statusEl.innerHTML = `<span style="color:#F87171">⚠ Invalid API key — showing mock SQL</span>`;
+          } else {
+            statusEl.innerHTML = `<span style="color:var(--amber-light)">⚠ API error — showing mock SQL</span>`;
+          }
+        }
       }
 
       // Typewrite SQL
@@ -291,19 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     sendBtn.disabled = false;
-  }
-
-  function getMockSQL(query) {
-    const q = query.toLowerCase();
-    if (q.includes('fuel') && q.includes('capacity'))
-      return `SELECT dv.Vehicle_Capacity, AVG(fo.Fuel_Rate) AS avg_fuel\nFROM fact_operations fo\nJOIN dim_vehicles dv ON fo.Vehicle_ID = dv.Vehicle_ID\nGROUP BY dv.Vehicle_Capacity\nORDER BY dv.Vehicle_Capacity LIMIT 100;`;
-    if (q.includes('risk') || q.includes('disruption'))
-      return `SELECT dv.Risk_Class, COUNT(*) AS operations,\n  AVG(dr.Disruption_Score) AS avg_disruption\nFROM fact_operations fo\nJOIN dim_vehicles dv ON fo.Vehicle_ID = dv.Vehicle_ID\nJOIN dim_risk dr ON fo.Route_ID = dr.Route_ID\nGROUP BY dv.Risk_Class LIMIT 100;`;
-    if (q.includes('traffic') || q.includes('eta'))
-      return `SELECT fo.Traffic_Level, AVG(fo.ETA_Variation) AS avg_eta,\n  AVG(dr.Delay_Probability) AS avg_delay\nFROM fact_operations fo\nJOIN dim_risk dr ON fo.Route_ID = dr.Route_ID\nGROUP BY fo.Traffic_Level LIMIT 100;`;
-    if (q.includes('status') || q.includes('delivered'))
-      return `SELECT fo.Order_Status, COUNT(*) AS total\nFROM fact_operations fo\nGROUP BY fo.Order_Status\nORDER BY total DESC LIMIT 100;`;
-    return `SELECT fo.Vehicle_ID, fo.Route_ID, fo.Order_Status,\n  dv.Risk_Class, dr.Disruption_Score\nFROM fact_operations fo\nJOIN dim_vehicles dv ON fo.Vehicle_ID = dv.Vehicle_ID\nJOIN dim_risk dr ON fo.Route_ID = dr.Route_ID\nLIMIT 100;`;
   }
 
   // ════════════════════════════════════════════════════════════
