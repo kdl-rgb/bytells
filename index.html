@@ -64,7 +64,7 @@
     </div>
 
     <p class="hero-subline animate-fade-up delay-2">
-      Bytells is KDL's industrial-grade logistics intelligence platform — delivering NL2SQL analytics, real-time fleet monitoring, and automated risk scoring for trucking and energy SMEs.
+      Bytells is KDL's industrial-grade logistics intelligence platform. It aims to deliver NL2SQL analytics, real-time fleet monitoring, and automated risk scoring for trucking and energy SMEs.
     </p>
 
     <div class="hero-cta-group animate-fade-up delay-3">
@@ -94,7 +94,6 @@
     </div>
   </div>
 
-  <!-- Right column — NL2SQL teaser -->
   <div class="hero-right">
     <div class="teaser-widget animate-fade-up delay-2">
       <div class="teaser-header">
@@ -113,7 +112,6 @@
       </div>
 
       <div class="teaser-body">
-        <!-- API Key input -->
         <div style="margin-bottom:12px;">
           <div class="form-label">Groq API Key (free at console.groq.com)</div>
           <input
@@ -124,8 +122,6 @@
             style="width:100%;margin-bottom:0;"
           >
         </div>
-
-        <!-- NL query input -->
         <div class="nl-input-area">
           <input
             type="text"
@@ -138,19 +134,15 @@
           </button>
         </div>
 
-        <!-- Sample chips -->
         <div class="prompt-chips" id="heroChips"></div>
 
-        <!-- SQL output -->
         <div class="sql-output" id="heroSqlOutput">
           <span class="sql-label">Generated SQL</span>
           <span class="sql-code" style="display:block;min-height:28px;color:var(--teal-light)"></span>
         </div>
 
-        <!-- Status -->
         <div id="heroStatus" class="label-mono" style="margin-bottom:8px;min-height:16px;color:var(--text-muted);"></div>
 
-        <!-- Result chart -->
         <div class="result-area" id="heroResultArea">
           <div class="result-placeholder" id="heroPlaceholder">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);opacity:0.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -243,7 +235,6 @@
   </div>
 
   <div class="schema-grid">
-    <!-- dim_vehicles -->
     <div class="schema-card">
       <div class="schema-card-header">
         <span class="schema-table-name">dim_vehicles</span>
@@ -257,7 +248,6 @@
       </div>
     </div>
 
-    <!-- fact_operations -->
     <div class="schema-card" style="border-color:rgba(13,148,136,0.3);">
       <div class="schema-card-header" style="background:rgba(13,148,136,0.06);">
         <span class="schema-table-name">fact_operations</span>
@@ -278,7 +268,6 @@
       </div>
     </div>
 
-    <!-- dim_risk -->
     <div class="schema-card">
       <div class="schema-card-header">
         <span class="schema-table-name">dim_risk</span>
@@ -310,7 +299,6 @@
   </div>
 
   <div class="security-grid">
-    <!-- RBAC Table -->
     <div class="security-visual">
       <div class="flex items-center gap-3" style="margin-bottom:var(--space-5);">
         <div style="width:32px;height:32px;background:var(--amber-glow);border:1px solid rgba(180,95,6,0.3);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--amber-light);">
@@ -353,7 +341,6 @@
       </table>
     </div>
 
-    <!-- Security items -->
     <div class="security-items">
       <div class="security-item">
         <div class="security-item-icon">
@@ -393,11 +380,11 @@
 <section class="cta-section" id="protocol">
   <div class="label-tag tag-teal" style="margin-bottom:var(--space-5);display:inline-flex;">
     <span class="status-dot online"></span>
-    Now Accepting Early Access
+    Now Accepting Early Access. In Demo Mode
   </div>
   <h2 class="display-lg">Ready to run The Protocol?</h2>
   <p style="color:var(--text-secondary);font-size:0.95rem;max-width:520px;margin:0 auto var(--space-8);line-height:1.7;position:relative;">
-    Join the Bytells ecosystem — built specifically for logistics and energy SMEs who need enterprise-grade data intelligence without the enterprise overhead.
+    Join the Bytells ecosystem. Built specifically for logistics and energy SMEs who need enterprise-grade data intelligence without the enterprise overhead.
   </p>
   <div class="cta-group">
     <a href="dashboard.html" class="btn btn-primary">
@@ -430,7 +417,7 @@
 
 <footer class="footer">
   <div>
-    <div class="footer-brand">Bytells v1.0.0 · © 2026 Kgotla Data Labs</div>
+    <div class="footer-brand">Bytells v0.0.1 · © 2026 Kgotla Data Labs</div>
     <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);margin-top:3px;letter-spacing:0.06em;">Logistics · Trucking · Energy Intelligence</div>
   </div>
   <div class="footer-links">
@@ -441,14 +428,12 @@
   </div>
 </footer>
 
-<!-- Scripts -->
 <script src="js/data.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/nl2sql.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
 
-    // Nav scroll effect
     const nav = document.getElementById('mainNav');
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 40);
@@ -456,7 +441,6 @@
 
     BytellsCharts.initDefaults();
 
-    // Populate prompt chips
     const chipsEl = document.getElementById('heroChips');
     BytellsNL2SQL.SAMPLE_PROMPTS.slice(0, 5).forEach(prompt => {
       const chip = document.createElement('button');
@@ -474,7 +458,6 @@
       if (q) runHeroQuery(q);
     });
 
-    // Enter key
     document.getElementById('heroNlInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         const q = e.target.value.trim();
@@ -482,7 +465,6 @@
       }
     });
 
-    // Hero NL2SQL query runner
     async function runHeroQuery(query) {
       const apiKey   = document.getElementById('heroApiKey').value;
       const sqlEl    = document.getElementById('heroSqlOutput');
@@ -492,7 +474,6 @@
 
       const sqlCode = sqlEl.querySelector('.sql-code');
 
-      // Reset
       sqlCode.textContent = '';
       sqlEl.classList.remove('active');
       placeholder.style.display = 'flex';
@@ -507,13 +488,11 @@
       });
 
       if (result) {
-        // Show chart
         placeholder.style.display = 'none';
         chartContainer.style.display = 'block';
         BytellsCharts.nlResultChart('heroChart', result.result);
       }
 
-      // typewrite the SQL into the span
       if (result?.sql) {
         const code = sqlEl.querySelector('.sql-code');
         code.textContent = '';
