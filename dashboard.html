@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Bytells</title>
+
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="modal-overlay open" id="loginModal">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:var(--space-5);">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--carbon-navy));border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;color:white;font-size:1rem;border:1px solid rgba(13,148,136,0.4);">B</div>
+      <div>
+        <div style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text-primary);">Bytells</div>
+        <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;">KDL Protocol Access</div>
+      </div>
+    </div>
+
+    <div class="modal-title">Client Login</div>
+    <p class="modal-sub">Select your role to access the appropriate dashboard view. In production, Argon2-authenticated credentials are required.</p>
+
+    <div class="form-group">
+      <label class="form-label">Role / Access Level</label>
+      <select class="input" id="loginRole" style="cursor:pointer;">
+        <option value="fleet">Fleet Manager — Full Access</option>
+        <option value="analyst">Analyst — Research & Risk Modeling</option>
+        <option value="driver">Driver — Route Safety HUD</option>
+        <option value="admin">Admin — User Management</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" class="input" placeholder="e.g. kgotla.ops" value="demo.user">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="input" placeholder="••••••••" value="••••••••">
+    </div>
+
+    <button class="btn btn-primary w-full" id="loginBtn" style="margin-top:var(--space-2);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Access Protocol
+    </button>
+
+    <a href="index.html" class="btn btn-ghost w-full" style="margin-top:var(--space-3);justify-content:center;">← Back to Landing</a>
+  </div>
+</div>
+
+<div class="dashboard-root" id="dashboardRoot" style="display:none;">
+
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <div class="sidebar-logo-mark">B</div>
+      <div class="sidebar-logo-info">
+        <div class="sidebar-logo-name">Bytells</div>
+        <div class="sidebar-logo-sub">by KDL · v1.0</div>
+      </div>
+    </a>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">DU</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Demo User</div>
+        <div class="user-role" id="userRole">Fleet Manager</div>
+      </div>
+      <span class="status-dot online" style="margin-left:auto;flex-shrink:0;"></span>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-muted);margin-bottom:var(--space-2);">
+        <span class="status-dot online" style="display:inline-block;margin-right:5px;"></span>
+        NEON DB · Connected
+      </div>
+      <button class="btn btn-ghost btn-sm w-full" onclick="document.getElementById('loginModal').classList.add('open');document.getElementById('dashboardRoot').style.display='none';">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="page-title" id="pageTitle">Fleet Overview</div>
+          <div class="page-breadcrumb" id="pageBreadcrumb">Bytells / Dashboard</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);padding:4px 10px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);" id="liveTime"></div>
+        <button class="topbar-icon-btn" title="Notifications">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="topbar-icon-btn" title="Refresh data" id="refreshBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="content-area" id="view-fleet">
+
+      <div class="stat-grid">
+        <div class="stat-card teal">
+          <div class="stat-icon-row">
+            <div class="stat-icon teal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <span class="stat-change up" id="kpiVehiclesChange">+3</span>
+          </div>
+          <div class="stat-value" id="kpiVehicles">—</div>
+          <div class="stat-label">Active Vehicles</div>
+        </div>
+
+        <div class="stat-card green">
+          <div class="stat-icon-row">
+            <div class="stat-icon green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="stat-change up" id="kpiDeliveryChange">+2.1%</span>
+          </div>
+          <div class="stat-value" id="kpiDelivery">—</div>
+          <div class="stat-label">Delivery Rate</div>
+        </div>
+
+        <div class="stat-card amber">
+          <div class="stat-icon-row">
+            <div class="stat-icon amber">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="20 9 14 15 8 9 3 14"/></svg>
+            </div>
+            <span class="stat-change down">+0.4</span>
+          </div>
+          <div class="stat-value" id="kpiFuel">—</div>
+          <div class="stat-label">Avg Fuel Rate L/100km</div>
+        </div>
+
+        <div class="stat-card red">
+          <div class="stat-icon-row">
+            <div class="stat-icon red">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <span class="stat-change down">-5</span>
+          </div>
+          <div class="stat-value" id="kpiHighRisk">—</div>
+          <div class="stat-label">High/Critical Risk Ops</div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Disruption Score & Fuel Rate — 14-Day Trend</div>
+            <span class="label-tag tag-teal">Live</span>
+          </div>
+          <div class="chart-card-body" style="height:220px;">
+            <canvas id="chartTimeSeries"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Order Status</div>
+            <span class="label-tag tag-grey">200 ops</span>
+          </div>
+          <div class="chart-card-body" style="height:220px;">
+            <canvas id="chartOrderStatus"></canvas>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Warehouse Performance — Delivery Rate vs Disruption</div>
+          </div>
+          <div class="chart-card-body" style="height:200px;">
+            <canvas id="chartWarehouse"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Risk Class Distribution</div>
+          </div>
+          <div class="chart-card-body" style="height:200px;">
+            <canvas id="chartRiskDist"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-card-title">Recent Operations</div>
+          <div style="display:flex;gap:var(--space-2);align-items:center;">
+            <input type="text" class="input" placeholder="Filter..." style="width:160px;padding:5px 10px;font-size:0.78rem;" id="opsFilterInput">
+            <span class="label-tag tag-teal" id="opsCount">20 records</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="opsTable">
+            <thead>
+              <tr>
+                <th>Vehicle</th><th>Route</th><th>Warehouse</th>
+                <th>Order Status</th><th>Fuel Rate</th><th>Traffic</th>
+                <th>Disruption</th><th>Risk Class</th><th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="opsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="content-area" id="view-analyst">
+      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-4);">
+
+        <div class="nl-panel">
+          <div class="nl-panel-header">
+            <div class="nl-panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              NL → SQL Query Engine
+              <span class="label-tag tag-teal" style="margin-left:auto;">Llama-3.3-70B · Groq</span>
+            </div>
+          </div>
+          <div class="nl-panel-body">
+            <div>
+              <div class="form-label">Groq API Key</div>
+              <input type="password" class="input" id="analystApiKey" placeholder="gsk_... (free at console.groq.com)">
+            </div>
+
+            <div>
+              <div class="form-label">Natural Language Query</div>
+              <div class="nl-input-area">
+                <input type="text" class="nl-input" id="analystNlInput" placeholder="e.g. Show average disruption score by risk class...">
+                <button class="nl-send-btn" id="analystSendBtn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </div>
+
+
+            <div class="prompt-chips" id="analystChips"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+
+              <div>
+                <div class="form-label">Generated SQL</div>
+                <div style="background:rgba(10,19,24,0.9);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);min-height:100px;font-family:var(--font-mono);font-size:0.72rem;line-height:1.7;color:var(--teal-light);white-space:pre-wrap;word-break:break-all;" id="analystSqlOutput">SELECT -- Your SQL will appear here</div>
+                <div class="form-label" style="margin-top:var(--space-2);" id="analystStatus"></div>
+              </div>
+
+              <div>
+                <div class="form-label">Query Result</div>
+                <div style="height:120px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);overflow:hidden;">
+                  <canvas id="analystChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div id="analystResultTable" style="overflow-x:auto;"></div>
+
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-4);">
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-card-title">Fuel Rate by Capacity</div></div>
+            <div class="chart-card-body" style="height:180px;"><canvas id="chartFuelCap"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-card-title">Traffic vs ETA Variation</div></div>
+            <div class="chart-card-body" style="height:180px;"><canvas id="chartTrafficETA"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-card-title">Risk Distribution</div></div>
+            <div class="chart-card-body" style="height:180px;"><canvas id="chartRiskAnalyst"></canvas></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="content-area" id="view-driver">
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card teal">
+          <div class="stat-icon-row">
+            <div class="stat-icon teal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-value" id="driverETA">+12 min</div>
+          <div class="stat-label">ETA Variation</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-icon-row">
+            <div class="stat-icon amber">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          </div>
+          <div class="stat-value" id="driverFatigue">6/10</div>
+          <div class="stat-label">Driver Fatigue Score</div>
+        </div>
+        <div class="stat-card" id="driverRiskCard">
+          <div class="stat-icon-row">
+            <div class="stat-icon red">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+          </div>
+          <div class="stat-value" id="driverRisk">Medium</div>
+          <div class="stat-label">Route Risk Class</div>
+        </div>
+      </div>
+
+      <div class="driver-hud-grid">
+        <div class="route-map-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Active Route — <span id="driverRouteId" style="color:var(--teal-light);font-family:var(--font-mono);">RT-005</span></div>
+            <span class="label-tag tag-teal"><span class="status-dot online" style="margin-right:4px;"></span>Live GPS</span>
+          </div>
+          <div class="map-placeholder">
+            <div class="map-grid-overlay"></div>
+            <div class="route-line"></div>
+            <div class="route-dot start"></div>
+            <div class="route-dot end"></div>
+            <div class="vehicle-dot"></div>
+            <div style="position:absolute;bottom:var(--space-4);left:var(--space-4);right:var(--space-4);display:flex;justify-content:space-between;">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--teal-light);">FROM</div>
+                <div id="driverFrom" style="font-size:0.78rem;color:var(--text-primary);">Gaborone Central</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--amber-light);">TO</div>
+                <div id="driverTo" style="font-size:0.78rem;color:var(--text-primary);">Francistown Depot</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="chart-card" style="margin-bottom:var(--space-4);">
+            <div class="chart-card-header"><div class="chart-card-title">Risk Radar</div></div>
+            <div class="chart-card-body" style="height:220px;"><canvas id="chartDriverRadar"></canvas></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+            <div id="driverAlerts"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-card-title">Assigned Route History</div>
+          <span class="label-tag tag-grey" id="driverVehicleTag">VH-005</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="driverHistoryTable">
+            <thead><tr><th>Route</th><th>Warehouse</th><th>Order Status</th><th>Risk Class</th><th>Disruption</th><th>ETA Var</th><th>Timestamp</th></tr></thead>
+            <tbody id="driverHistoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="content-area" id="view-admin">
+      <div class="admin-grid">
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">System Users</div>
+            <button class="btn btn-primary btn-sm" id="addUserBtn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add User
+            </button>
+          </div>
+          <div class="user-list" id="adminUserList"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-card-title">System Health</div></div>
+            <div class="chart-card-body">
+              <div id="adminHealthItems" style="display:flex;flex-direction:column;gap:var(--space-3);"></div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-card-title">DB Schema Info</div></div>
+            <div class="chart-card-body">
+              <div style="font-family:var(--font-mono);font-size:0.72rem;line-height:2;">
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-subtle);padding-bottom:6px;margin-bottom:6px;">
+                  <span style="color:var(--teal-light);">fact_operations</span>
+                  <span style="color:var(--text-muted);">200 rows · 11 cols</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-subtle);padding-bottom:6px;margin-bottom:6px;">
+                  <span style="color:var(--teal-light);">dim_vehicles</span>
+                  <span style="color:var(--text-muted);">50 rows · 4 cols</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="color:var(--teal-light);">dim_risk</span>
+                  <span style="color:var(--text-muted);">12 rows · 6 cols</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-card-title">Audit Log</div>
+          <span class="label-tag tag-grey">Last 10 events</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="auditTable">
+            <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Resource</th><th>IP</th><th>Status</th></tr></thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/nl2sql.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
